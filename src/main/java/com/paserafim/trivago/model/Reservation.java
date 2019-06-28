@@ -1,6 +1,9 @@
 package com.paserafim.trivago.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -9,6 +12,9 @@ import java.io.Serializable;
 import java.util.Set;
 
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 @Table(name = "Reservation")
 public class Reservation implements Serializable {
 
@@ -34,38 +40,10 @@ public class Reservation implements Serializable {
     @JoinColumn(name = "customerId", nullable = false)
     private Customer customer;
 
+    @Column(nullable = false, length = 10,unique = true)
+    private String reference;
+
     @Column(name = "totalAmount", nullable = false, precision = 2)
-    private Double totalAmout;
+    private Double totalAmount;
 
-    public Reservation() { }
-
-    public Reservation(Long reservationId, Customer customer, Double totalAmout) {
-        this.reservationId = reservationId;
-        this.customer = customer;
-        this.totalAmout = totalAmout;
-    }
-
-    public Long getReservationId() {
-        return reservationId;
-    }
-
-    public void setReservationId(Long reservationId) {
-        this.reservationId = reservationId;
-    }
-
-    public Customer getCustomer() {
-        return customer;
-    }
-
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
-    }
-
-    public Double getTotalAmout() {
-        return totalAmout;
-    }
-
-    public void setTotalAmout(Double totalAmout) {
-        this.totalAmout = totalAmout;
-    }
 }

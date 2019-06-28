@@ -1,9 +1,16 @@
 package com.paserafim.trivago.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 @Table(name = "Customer")
 public class Customer implements Serializable {
     @Id
@@ -21,35 +28,4 @@ public class Customer implements Serializable {
     @Column(nullable = false, length = 100)
     private String email;
 
-    public Customer() {
-    }
-
-    public Customer(String fullName, String email) {
-        this.fullName = fullName;
-        this.email = email;
-    }
-
-    public Long getCustomerId() {
-        return customerId;
-    }
-
-    public void setCustomerId(Long customerId) {
-        this.customerId = customerId;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
 }
