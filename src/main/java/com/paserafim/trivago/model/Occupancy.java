@@ -2,8 +2,9 @@ package com.paserafim.trivago.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -11,7 +12,8 @@ import java.io.Serializable;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
 @Table(name = "Occupancy")
 public class Occupancy implements Serializable {
     @Id
@@ -33,4 +35,12 @@ public class Occupancy implements Serializable {
     @Column(name = "babies", nullable = false)
     private Integer babies;
 
+    @Override
+    public String toString() {
+        return "Occupancy{" +
+                ", adults=" + adults +
+                ", juniors=" + juniors +
+                ", babies=" + babies +
+                '}';
+    }
 }

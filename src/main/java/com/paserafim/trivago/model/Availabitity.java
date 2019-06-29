@@ -1,9 +1,10 @@
 package com.paserafim.trivago.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -14,9 +15,11 @@ import java.util.Date;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+//@Data
+@Getter
+@Setter
 @Table(name = "Availability")
-public class Availablitity implements Serializable {
+public class Availabitity implements Serializable {
     @Id
     @GeneratedValue(generator = "availability_generator")
     @SequenceGenerator(
@@ -24,6 +27,7 @@ public class Availablitity implements Serializable {
             sequenceName = "availability_sequence",
             initialValue = 1
     )
+    //@JsonIgnore
     private Long AvailabilityId;
 
     @Temporal(TemporalType.DATE)
@@ -35,10 +39,19 @@ public class Availablitity implements Serializable {
     private Date endDate;
 
     //Foreign Key
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JsonIgnore
     @JoinColumn(name = "roomTypeId", nullable = false)
     private RoomType roomType;
 
+    @Override
+    public String toString() {
+        return "Availabitity{" +
+                "AvailabilityId=" + AvailabilityId +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
+                ", roomType=" + roomType .toString() +
+                '}';
+    }
 }
