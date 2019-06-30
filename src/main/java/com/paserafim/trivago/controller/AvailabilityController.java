@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,6 +17,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 public class AvailabilityController {
@@ -35,10 +35,10 @@ public class AvailabilityController {
         this.roomTypeRepository = roomTypeRepository;
     }
 
-    @GetMapping("/availability")
+    /*@GetMapping("/availability")
     public List<Availabitity> getAvailabilities(){
         return availabilityRepository.findAll();
-    }
+    }*/
 
     @PostMapping("/availability")
     public ResponseEntity<RoomAvailabilityResponseModel> getRoomAvailability(@Valid @RequestBody AvailabilityRequestModel roomAvailability ) {
@@ -48,35 +48,49 @@ public class AvailabilityController {
         LocalDate endDate = roomAvailability.getEndDate();
         List<Occupancy> occupancies = roomAvailability.getOccupancy();
 
-        logger.info("startdate ==> " + startDate);
-        logger.info("enddate ==> " + endDate);
-        if (occupancies != null)
-            for (Occupancy occ : occupancies)
-                logger.info("occupancy [ adults: " + occ.getAdults().toString() + ", juniors:  " + occ.getJuniors().toString() + ", babies: " + occ.getBabies().toString() + " ]");
-
         List<RoomType> availableRooms = new ArrayList<RoomType>();
+        List<RoomType> roomsAvailableWithOccupancy = new ArrayList<RoomType>();
 
         for (Availabitity availabitity : this.availabilityRepository.findAll()) {
             RoomType roomType = new RoomType();
             LocalDate startAvailableDate = Instant.ofEpochMilli(availabitity.getStartDate().getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
             LocalDate endAvailableDate = Instant.ofEpochMilli(availabitity.getEndDate().getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
 
-            if (startAvailableDate.isBefore(startDate) && endAvailableDate.isAfter(endDate)) {
+            if ( (startAvailableDate.isEqual(startDate) || startAvailableDate.isBefore(startDate)) && (endAvailableDate.isEqual(endDate) || endAvailableDate.isAfter(endDate)) ) {
                 roomType = availabitity.getRoomType();
                 availableRooms.add(roomType);
             }
         }
 
-        if (availableRooms.size() > 0) {
-            for(RoomType roomType : availableRooms) {
-                logger.info("RoomType loaded [ " + roomType.toString() + " ]");
-            }
+        logger.info("startdate ==> " + startDate); logger.info("enddate ==> " + endDate);
 
+        if (availableRooms.size() > 0) {
+            if (occupancies != null) {
+                for (Occupancy occ : occupancies)
+                    logger.info("occupancy [ adults: " + occ.getAdults().toString() + ", juniors:  " + occ.getJuniors().toString() + ", babies: " + occ.getBabies().toString() + " ]");
+
+                // filter by occupancies
+                roomsAvailableWithOccupancy = availableRooms.stream().
+                        filter(room -> occupancies.stream()
+                                .anyMatch(occupancy ->
+                                        occupancy.getAdults().equals(room.getOccupancy().getAdults()) &&
+                                                occupancy.getJuniors().equals(room.getOccupancy().getJuniors()) &&
+                                                occupancy.getBabies().equals(room.getOccupancy().getBabies())
+                                )).collect(Collectors.toList());
+
+                if (roomsAvailableWithOccupancy.size() > 0) this.roomAvailabilityResponseModel.setRoomTypes(roomsAvailableWithOccupancy);
+                else this.roomAvailabilityResponseModel.setRoomTypes(availableRooms);
+
+            } else {
+                // standard occupancy
+                this.roomAvailabilityResponseModel.setRoomTypes(availableRooms.stream()
+                        .filter(r -> r.getRoomTypeCode().equals("STD")).collect(Collectors.toList()));
+            }
             this.roomAvailabilityResponseModel.setStartDate(startDate);
             this.roomAvailabilityResponseModel.setEndDate(endDate);
-            this.roomAvailabilityResponseModel.setRoomTypes(availableRooms);
+
             return ResponseEntity.ok(this.roomAvailabilityResponseModel);
-        } else
+         } else
             return ResponseEntity.notFound().build();
     }
 }
