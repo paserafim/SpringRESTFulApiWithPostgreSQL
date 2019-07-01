@@ -1,6 +1,5 @@
 package com.paserafim.trivago.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
@@ -31,24 +30,26 @@ public class RoomType implements Serializable {
 
     @ManyToMany(mappedBy = "roomTypes")
     @JsonIgnore
+    @JsonIgnoreProperties("roomTypes")
     private Set<Reservation> reservations;
 
     //Foreign Key
     @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
-    @JsonBackReference
+    //@JsonBackReference
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @JoinColumn(name = "occupancyId", nullable = false)
     private Occupancy occupancy;
 
     @Column(nullable = false, length = 3)
     private String roomTypeCode;
 
-    @Column(nullable = false, length = 15)
+    @Column(length = 15)
     private String roomTypeName;
 
-    @Column(nullable = false, precision = 2)
+    @Column(precision = 2)
     private Double amount;
 
-    @Column(nullable = false)
+    //@JsonIgnore
     private Integer roomsAvailable;
 
 }

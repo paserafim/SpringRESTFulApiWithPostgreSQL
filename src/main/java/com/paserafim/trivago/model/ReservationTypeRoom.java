@@ -19,13 +19,13 @@ public class ReservationTypeRoom implements Serializable {
     private ReservationTypeRoomId reservationTypeRoomId;
 
     @Temporal(TemporalType.DATE)
-    @Column(nullable = false)
+    //@Column(nullable = false)
     private Date startDate;
 
     @Temporal(TemporalType.DATE)
-    @Column(nullable = false)
+    //@Column(nullable = false)
     private Date endDate;
 
-    @Column(nullable = false)
+    //@Column(nullable = false)
     private Integer quantity;
 }

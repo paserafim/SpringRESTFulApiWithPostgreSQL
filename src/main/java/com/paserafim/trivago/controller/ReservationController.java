@@ -10,7 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.util.*;
@@ -55,32 +57,54 @@ public class ReservationController {
                 .filter(c ->
                         c.getEmail().equals(customerMail) && c.getFullName().equals(customerFullName))
                 .collect(Collectors.toList()).get(0);
+
+        // create new Reservation
         Reservation newReservation = new Reservation();
-        newReservation.setCustomer(customer);
-
-        String reference = RandomStringUtils.random(6, true,true).toUpperCase();
-
-        newReservation.setReservationId(14L);
-        newReservation.setReference(reference);
+        //newReservation.setReservationId(55L);
         newReservation.setTotalAmount(0.0);
+        newReservation.setCustomer(customer);
+        // Set random string code with 6 alphanumeric characters
+        String reference = RandomStringUtils.random(6, true,true).toUpperCase();
+        newReservation.setReference(reference);
+        //newReservation.setRoomTypes(new HashSet<RoomType>(roomTypesToBook));
+        //reservationRepository.save(newReservation);
+
+        List<ReservationTypeRoom> reservationTypeRoomList = new ArrayList<ReservationTypeRoom>();
 
         // Create Reservation_Type_Room
-
         for (RoomType roomType : roomTypesToBook) {
-            //Long reservationId = reservationRepository.findAll().stream().filter(r->r.)
-            ReservationTypeRoomId reservationTypeRoomId = new ReservationTypeRoomId(10L,1L);
-            ReservationTypeRoom newReservationTypeRoom = new ReservationTypeRoom();
-            newReservationTypeRoom.setReservationTypeRoomId(reservationTypeRoomId);
-            newReservationTypeRoom.setStartDate(startDate);
-            newReservationTypeRoom.setEndDate(endDate);
-            newReservationTypeRoom.setQuantity(1);
-            reservationTypeRoomRepository.save(newReservationTypeRoom);
-            totalAmount += roomType.getAmount();
+            Optional<RoomType> rt = roomTypeRepository.findAll().stream().filter(roomT -> roomT.getRoomTypeCode().equals(roomType.getRoomTypeCode())).findAny();
+
+            if (rt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            else {
+                roomType.setRoomTypeId(rt.get().getRoomTypeId());
+                roomType.setRoomTypeName(rt.get().getRoomTypeName());
+                roomType.setAmount(rt.get().getAmount());
+                roomType.setRoomsAvailable(rt.get().getRoomsAvailable());
+                // calculate totalAmount
+                totalAmount += roomType.getAmount();
+
+                ReservationTypeRoomId reservationTypeRoomId = new ReservationTypeRoomId(newReservation.getReservationId(),roomType.getRoomTypeId());
+                ReservationTypeRoom newReservationTypeRoom = new ReservationTypeRoom();
+                newReservationTypeRoom.setReservationTypeRoomId(reservationTypeRoomId);
+                newReservationTypeRoom.setStartDate(startDate);
+                newReservationTypeRoom.setEndDate(endDate);
+                newReservationTypeRoom.setQuantity(1);
+
+                reservationTypeRoomList.add(newReservationTypeRoom);
+            }
         }
 
         newReservation.setRoomTypes(new HashSet<RoomType>(roomTypesToBook));
+        Reservation r = reservationRepository.save(newReservation);
 
-        reservationRepository.save(newReservation);
+        // save reservationTypeRooms
+        for (ReservationTypeRoom reservationTypeRoom : reservationTypeRoomList){
+            reservationTypeRoom.getReservationTypeRoomId().setReservationId(r.getReservationId());
+            reservationTypeRoomRepository.save(reservationTypeRoom);
+        }
 
         // Update totalAmount and Reservation
         Optional<Reservation> reservation = reservationRepository.findById(newReservation.getReservationId());
@@ -91,11 +115,11 @@ public class ReservationController {
 
         // Create the ReservationResponseModel object
         ReservationResponseModel reservationResponseModel = new ReservationResponseModel();
-        reservationRequestModel.setStartDate(startDate);
-        reservationRequestModel.setEndDate(endDate);
-        reservationRequestModel.setCustomerFullName(customerFullName);
-        reservationRequestModel.setCustomerMail(customerMail);
-        reservationRequestModel.setRoomTypes(roomTypesToBook);
+        reservationResponseModel.setStartDate(startDate);
+        reservationResponseModel.setEndDate(endDate);
+        reservationResponseModel.setCustomerFullName(customerFullName);
+        reservationResponseModel.setCustomerEmail(customerMail);
+        reservationResponseModel.setRoomTypes(roomTypesToBook);
         reservationResponseModel.setTotalAmount(totalAmount);
         reservationResponseModel.setReference(newReservation.getReference());
 
@@ -115,27 +139,24 @@ public class ReservationController {
             return ResponseEntity.notFound().build();
         } else {
             List<ReservationTypeRoom> reservationTypeRoomList = reservationTypeRoomRepository.findAll();
-
-            reservationTypeRoomList.stream()
-                .filter( reservationTypeRoom ->
-                        reservationTypeRoom.getReservationTypeRoomId().getReservationId().equals(reservation.getReservationId()));
-
+            // filter TypeRooms from reservation
+            List<ReservationTypeRoom> filteredReservationTypeRoomList = reservationTypeRoomList.stream()
+                    .filter(reservationTypeRoom -> reservationTypeRoom.getReservationTypeRoomId().getReservationId().equals(reservation.getReservationId())).collect(Collectors.toList());
+            //Get customer from reservation
             Optional<Customer> customer = customerRepository.findById(reservation.getCustomer().getCustomerId());
+            //Filter roomTypes by Id
+            List<RoomType> roomTypesList = filteredReservationTypeRoomList.stream().map(reservationTypeRoom -> {
+                Optional<RoomType> roomType = roomTypeRepository.findById(reservationTypeRoom.getReservationTypeRoomId().getRoomTypeId());
+                return roomType.get();
+            }).collect(Collectors.toList());
 
             ReservationResponseModel reservationResponseModel = new ReservationResponseModel();
-            reservationResponseModel.setStartDate(reservationResponseModel.getStartDate());
-            reservationResponseModel.setEndDate(reservationResponseModel.getEndDate());
+            reservationResponseModel.setStartDate(filteredReservationTypeRoomList.get(0).getStartDate());
+            reservationResponseModel.setEndDate(filteredReservationTypeRoomList.get(0).getEndDate());
             reservationResponseModel.setReference(reference);
             reservationResponseModel.setTotalAmount(reservation.getTotalAmount());
             reservationResponseModel.setCustomerFullName(customer.get().getFullName());
             reservationResponseModel.setCustomerEmail(customer.get().getEmail());
-
-            List<RoomType> roomTypesList = new ArrayList<RoomType>();
-            reservationTypeRoomList.stream().map(reservationTypeRoom -> {
-                Optional<RoomType> roomType = roomTypeRepository.findById(reservationTypeRoom.getReservationTypeRoomId().getRoomTypeId());
-                roomTypesList.add(roomType.get());
-                return roomTypesList;
-            });
 
             reservationResponseModel.setRoomTypes(roomTypesList);
 

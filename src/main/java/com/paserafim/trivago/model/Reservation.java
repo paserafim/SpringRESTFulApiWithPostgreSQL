@@ -1,9 +1,11 @@
 package com.paserafim.trivago.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -14,25 +16,28 @@ import java.util.Set;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+//@data
+@Getter
+@Setter
 @Table(name = "Reservation")
 public class Reservation implements Serializable {
 
     @Id
-/*   @GeneratedValue(generator = "reservation_generator")
+   @GeneratedValue(generator = "reservation_generator")
    @SequenceGenerator(
             name = "reservation_generator",
             sequenceName = "reservation_sequence",
-            initialValue = 1000)*/
-    @GeneratedValue
+            initialValue = 1000)
+    //@GeneratedValue(strategy = GenerationType.AUTO)
     @JsonIgnore
     private Long reservationId;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany//(cascade = CascadeType.ALL)
     @JoinTable(name = "ReservationTypeRoom",
             joinColumns = {@JoinColumn(name = "reservationId")},
             inverseJoinColumns = {@JoinColumn(name = "roomTypeId")})
     @JsonIgnore
+    @JsonIgnoreProperties("reservations")
     private Set<RoomType> roomTypes;
 
     //Foreign Key
@@ -48,4 +53,13 @@ public class Reservation implements Serializable {
     @Column(name = "totalAmount", nullable = false, precision = 2)
     private Double totalAmount;
 
+    @Override
+    public String toString() {
+        return "Reservation{" +
+                "reservationId=" + reservationId +
+                ", customer=" + customer +
+                ", reference='" + reference + '\'' +
+                ", totalAmount=" + totalAmount +
+                '}';
+    }
 }

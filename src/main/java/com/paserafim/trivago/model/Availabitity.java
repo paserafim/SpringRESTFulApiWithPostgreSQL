@@ -1,5 +1,7 @@
 package com.paserafim.trivago.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,7 +29,7 @@ public class Availabitity implements Serializable {
             sequenceName = "availability_sequence",
             initialValue = 1
     )
-    //@JsonIgnore
+    @JsonIgnore
     private Long AvailabilityId;
 
     @Temporal(TemporalType.DATE)
@@ -43,6 +45,7 @@ public class Availabitity implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "roomTypeId", nullable = false)
+    @JsonBackReference
     private RoomType roomType;
 
     @Override
