@@ -1,13 +1,11 @@
 package com.paserafim.trivago.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -36,11 +34,9 @@ public class RoomType implements Serializable {
     private Set<Reservation> reservations;
 
     //Foreign Key
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JsonManagedReference
+    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
+    @JsonBackReference
     @JoinColumn(name = "occupancyId", nullable = false)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Occupancy occupancy;
 
     @Column(nullable = false, length = 3)
@@ -55,14 +51,4 @@ public class RoomType implements Serializable {
     @Column(nullable = false)
     private Integer roomsAvailable;
 
-    @Override
-    public String toString() {
-        return "RoomType{" +
-                ", occupancy=" + occupancy +
-                ", roomTypeCode='" + roomTypeCode + '\'' +
-                ", roomTypeName='" + roomTypeName + '\'' +
-                ", amount=" + amount +
-                ", roomsAvailable=" + roomsAvailable +
-                '}';
-    }
 }

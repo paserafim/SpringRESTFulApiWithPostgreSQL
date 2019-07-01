@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
@@ -14,14 +13,14 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class RoomAvailabilityResponseModel implements Serializable {
+public class ReservationResponseModel implements Serializable {
 
-    @NotNull(message="startdate cannot be missing or empty")
     private LocalDate startDate;
-
-    @NotNull(message="enddate cannot be missing or empty")
     private LocalDate endDate;
-
+    private String reference;
+    private Double totalAmount;
+    private String customerFullName;
+    private String customerEmail;
     private List<RoomType> roomTypes;
 
 }

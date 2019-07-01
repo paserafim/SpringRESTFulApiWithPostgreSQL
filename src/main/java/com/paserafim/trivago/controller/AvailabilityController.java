@@ -28,28 +28,29 @@ public class AvailabilityController {
     @Autowired
     private RoomTypeRepository roomTypeRepository;
 
-    private RoomAvailabilityResponseModel roomAvailabilityResponseModel = new RoomAvailabilityResponseModel();
+    private AvailabilityResponseModel roomAvailabilityResponseModel = new AvailabilityResponseModel();
 
     public AvailabilityController(AvailabilityRepository availabilityRepository, RoomTypeRepository roomTypeRepository) {
         this.availabilityRepository = availabilityRepository;
         this.roomTypeRepository = roomTypeRepository;
     }
 
-    /*@GetMapping("/availability")
-    public List<Availabitity> getAvailabilities(){
-        return availabilityRepository.findAll();
-    }*/
-
     @PostMapping("/availability")
-    public ResponseEntity<RoomAvailabilityResponseModel> getRoomAvailability(@Valid @RequestBody AvailabilityRequestModel roomAvailability ) {
+    public ResponseEntity<AvailabilityResponseModel> getRoomAvailability(@Valid @RequestBody AvailabilityRequestModel availabilityRequestModel ) {
 
         // Extract startDate, endDate and occupancies from Body
-        LocalDate startDate = roomAvailability.getStartDate();
-        LocalDate endDate = roomAvailability.getEndDate();
-        List<Occupancy> occupancies = roomAvailability.getOccupancy();
+        LocalDate startDate = availabilityRequestModel.getStartDate();
+        LocalDate endDate = availabilityRequestModel.getEndDate();
+        List<Occupancy> occupancies = availabilityRequestModel.getOccupancy();
 
         List<RoomType> availableRooms = new ArrayList<RoomType>();
         List<RoomType> roomsAvailableWithOccupancy = new ArrayList<RoomType>();
+
+        logger.info("startdate ==> " + startDate); logger.info("enddate ==> " + endDate);
+        if (occupancies != null) {
+            for (Occupancy occ : occupancies)
+                logger.info("occupancy [ adults: " + occ.getAdults().toString() + ", juniors:  " + occ.getJuniors().toString() + ", babies: " + occ.getBabies().toString() + " ]");
+        }
 
         for (Availabitity availabitity : this.availabilityRepository.findAll()) {
             RoomType roomType = new RoomType();
@@ -62,14 +63,9 @@ public class AvailabilityController {
             }
         }
 
-        logger.info("startdate ==> " + startDate); logger.info("enddate ==> " + endDate);
-
         if (availableRooms.size() > 0) {
             if (occupancies != null) {
-                for (Occupancy occ : occupancies)
-                    logger.info("occupancy [ adults: " + occ.getAdults().toString() + ", juniors:  " + occ.getJuniors().toString() + ", babies: " + occ.getBabies().toString() + " ]");
-
-                // filter by occupancies
+                 // filter by occupancies
                 roomsAvailableWithOccupancy = availableRooms.stream().
                         filter(room -> occupancies.stream()
                                 .anyMatch(occupancy ->

@@ -19,18 +19,20 @@ import java.util.Set;
 public class Reservation implements Serializable {
 
     @Id
-    @GeneratedValue(generator = "reservation_generator")
-    @SequenceGenerator(
+/*   @GeneratedValue(generator = "reservation_generator")
+   @SequenceGenerator(
             name = "reservation_generator",
             sequenceName = "reservation_sequence",
-            initialValue = 1000
-    )
+            initialValue = 1000)*/
+    @GeneratedValue
+    @JsonIgnore
     private Long reservationId;
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "ReservationTypeRoom",
-               joinColumns = {@JoinColumn(name = "reservationId")},
-               inverseJoinColumns = {@JoinColumn(name = "roomTypeId")})
+            joinColumns = {@JoinColumn(name = "reservationId")},
+            inverseJoinColumns = {@JoinColumn(name = "roomTypeId")})
+    @JsonIgnore
     private Set<RoomType> roomTypes;
 
     //Foreign Key
@@ -40,7 +42,7 @@ public class Reservation implements Serializable {
     @JoinColumn(name = "customerId", nullable = false)
     private Customer customer;
 
-    @Column(nullable = false, length = 10,unique = true)
+    @Column(nullable = false, length = 10, unique = true)
     private String reference;
 
     @Column(name = "totalAmount", nullable = false, precision = 2)

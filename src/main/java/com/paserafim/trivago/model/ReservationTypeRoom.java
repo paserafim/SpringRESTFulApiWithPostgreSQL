@@ -15,10 +15,8 @@ import java.util.Date;
 @Table(name = "ReservationTypeRoom")
 public class ReservationTypeRoom implements Serializable {
 
-    @Id
-    private Long reservationId;
-    @Id
-    private Long roomTypeId;
+    @EmbeddedId
+    private ReservationTypeRoomId reservationTypeRoomId;
 
     @Temporal(TemporalType.DATE)
     @Column(nullable = false)
